@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package proto;
+
+service URLShortener {
+    rpc AddURL(AddURLRequest) returns (AddURLResponse){}
+    rpc GetURL(GetURLRequest) returns (GetURLResponse){}
+}
+
+message AddURLRequest {
+    string url = 1;
+    string customEndpoint = 2;
+}
+
+message AddURLResponse {
+    string status = 1;
+    string message = 2;
+    ShortenedURL url = 3;
+}
+
+message ShortenedURL {
+    string originalURL = 1;
+    string shortenedURL = 2;
+}
+
+message GetURLRequest {
+    string URL = 1;
+}
+
+message GetURLResponse {
+    repeated ShortenedURL url = 1;
+}
+
