@@ -18,15 +18,15 @@ func main() {
 	client := pb.NewURLShortenerClient(conn)
 
 	response, err := client.AddURL(context.Background(), &pb.AddURLRequest{
-		Url:            "https://www.google.com",
-		CustomEndpoint: "google",
+		Url:            "https://creepypasta.com",
+		CustomEndpoint: "retard",
 	})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	value, err := client.GetURL(context.Background(), &pb.GetURLRequest{
-		URL: "google",
+		URL: "rdd2",
 	})
 
 	if err != nil {

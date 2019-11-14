@@ -49,8 +49,8 @@ func (s *Server) GetURL(ctx context.Context, req *pb.GetURLRequest) (*pb.GetURLR
 	return &pb.GetURLResponse{
 		Url: []*pb.ShortenedURL{
 			&pb.ShortenedURL{
-				OriginalURL:  req.URL,
-				ShortenedURL: val,
+				OriginalURL:  val,
+				ShortenedURL: req.URL,
 			},
 		},
 	}, err
@@ -99,7 +99,7 @@ func main() {
 				rw.Write([]byte(fmt.Sprintf("Could not find url %v, Error: %v", parms["key"], err.Error())))
 				return
 			}
-			http.Redirect(rw, r, redirectURL.Url[0].ShortenedURL, http.StatusSeeOther)
+			http.Redirect(rw, r, redirectURL.Url[0].OriginalURL, http.StatusSeeOther)
 		},
 	)
 
