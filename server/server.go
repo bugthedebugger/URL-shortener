@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+	"sync"
+
+	"github.com/gorilla/mux"
 
 	"github.com/go-redis/redis"
 
@@ -19,7 +23,7 @@ type Server struct {
 
 // AddURL (ctx context.Context, req *pb.AddURLRequest) (*pb.AddURLResponse, error)
 func (s *Server) AddURL(ctx context.Context, req *pb.AddURLRequest) (*pb.AddURLResponse, error) {
-	val, err := s.rc.Set(req.Url, req.CustomEndpoint, 0).Result()
+	val, err := s.rc.Set(req.CustomEndpoint, req.Url, 0).Result()
 
 	if err != nil {
 		return &pb.AddURLResponse{
@@ -52,7 +56,11 @@ func (s *Server) GetURL(ctx context.Context, req *pb.GetURLRequest) (*pb.GetURLR
 	}, err
 }
 
+var wg = sync.WaitGroup{}
+
 func main() {
+	wg.Add(2)
+
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal("Error listening on port 8080")
@@ -72,15 +80,43 @@ func main() {
 	}
 	fmt.Printf("Redis: %v\n", pong)
 
-	srv := grpc.NewServer()
-	pb.RegisterURLShortenerServer(srv, &Server{
+	registerService := &Server{
 		redisClient,
-	})
-
-	log.Println("Starting server ...")
-	if err := srv.Serve(listener); err != nil {
-		log.Fatal("Error starting serverr on port 8080")
-		return
 	}
 
+	srv := grpc.NewServer()
+	pb.RegisterURLShortenerServer(srv, registerService)
+
+	m := mux.NewRouter()
+	m.HandleFunc(
+		"/{key}",
+		func(rw http.ResponseWriter, r *http.Request) {
+			parms := mux.Vars(r)
+			redirectURL, err := registerService.GetURL(context.Background(), &pb.GetURLRequest{
+				URL: parms["key"],
+			})
+			if err != nil {
+				rw.Write([]byte(fmt.Sprintf("Could not find url %v, Error: %v", parms["key"], err.Error())))
+				return
+			}
+			http.Redirect(rw, r, redirectURL.Url[0].ShortenedURL, http.StatusSeeOther)
+		},
+	)
+
+	go func() {
+		log.Println("Starting server ...")
+		if err := srv.Serve(listener); err != nil {
+			log.Fatal("Error starting serverr on port 8080")
+			return
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		log.Println("Starting http server")
+		http.ListenAndServe(":8000", m)
+		wg.Done()
+	}()
+
+	wg.Wait()
 }

@@ -26,7 +26,7 @@ func main() {
 	}
 
 	value, err := client.GetURL(context.Background(), &pb.GetURLRequest{
-		URL: "https://www.google.com",
+		URL: "google",
 	})
 
 	if err != nil {
