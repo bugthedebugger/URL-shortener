@@ -3,6 +3,9 @@ all:
 	make buildclient
 	make dockerimage
 
+dependencies:
+	go get -d ./...
+
 dockerimage:
 	docker-compose up
 
