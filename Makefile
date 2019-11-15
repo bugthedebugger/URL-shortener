@@ -1,10 +1,10 @@
 all:
-	make dockerimage
 	make buildserver
 	make buildclient
+	make dockerimage
 
 dockerimage:
-	docker run --rm -it -d -p 6379:6379 redis
+	docker-compose up
 
 buildserver:
 	echo "Building server"

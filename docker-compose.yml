@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  url_shortener_server:
+    build: 
+      context: ./server
+    container_name: url_shortener_server
+    ports:
+      - 8080:8080
+      - 8000:8000
+    depends_on: 
+      - redis_server
+  redis_server:
+    image: redis
+    
