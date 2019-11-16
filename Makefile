@@ -1,4 +1,5 @@
 all:
+	make dependencies
 	make buildserver
 	make buildclient
 	make dockerimage
